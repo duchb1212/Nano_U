@@ -1,0 +1,85 @@
+[package]
+edition = "2024"
+name = "nanou_esp"
+rust-version = "1.88"
+version = "0.1.0"
+
+[[bin]]
+name = "inference"
+path = "./src/bin/inference.rs"
+
+[[bin]]
+name = "analysis"
+path = "./src/bin/analysis.rs"
+
+[[bin]]
+name = "single_inference"
+path = "./src/bin/single_inference.rs"
+
+[[bin]]
+name = "analysis_person_detect"
+path = "./src/bin/analysis_person_detect.rs"
+
+[[bin]]
+name = "run"
+path = "./src/bin/run.rs"
+
+[[bin]]
+name = "online"
+path = "./src/bin/online.rs"
+
+[[bin]]
+name = "capture"
+path = "./src/bin/capture.rs"
+
+[dependencies]
+# Core ESP32-S3 HAL. `psram` maps external RAM so the live-camera framebuffer
+# (online bin) can live there; the inference path stays heap-free.
+esp-hal = { version = "~1.0", features = ["esp32s3", "log-04", "unstable", "psram"] }
+
+# Logging
+log = "0.4.22"
+esp-println = { version = "0.16.1", features = ["esp32s3", "log-04"] }
+
+# Panic Handling
+esp-backtrace = { version = "0.18.1", features = [
+  "esp32s3",
+  "panic-handler",
+  "println",
+] }
+
+# Bootloader Support
+esp-bootloader-esp-idf = { version = "0.4.0", features = ["esp32s3"] }
+esp-rom-sys = { version = "0.1.3", features = ["esp32s3"] }
+
+# Math & Inference
+critical-section = "1.2.0"
+nalgebra = { version = "0.32.6", default-features = false, features = [
+  "macros",
+  "libm",
+] }
+libm = "0.2"
+microflow = { git = "https://github.com/federico-pizz/microflow-rs", branch = "buffer-reuse", features = ["buffer-reuse"] }
+# microflow = { path = "/home/fefe/Projects/microflow-rs-buffer-reuse", features = ["buffer-reuse"] }
+
+[build-dependencies]
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[profile.dev]
+opt-level = 3           # else will not run
+overflow-checks = true
+debug-assertions = true
+panic = 'abort'
+lto = "fat"
+codegen-units = 1
+incremental = false
+debug = 1
+
+[profile.release]
+codegen-units = 1
+debug = 0
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 3
+panic = 'abort'
